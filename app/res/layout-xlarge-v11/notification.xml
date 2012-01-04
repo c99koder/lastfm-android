@@ -32,24 +32,24 @@
             android:id="@+id/love"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/love" android:background="#000" android:padding="7dip"/>
+            android:src="@drawable/love" android:background="@null" android:padding="7dip"/>
 
         <ImageButton
             android:id="@+id/ban"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ban" android:background="#000" android:padding="7dip"/>
+            android:src="@drawable/ban" android:background="@null" android:padding="7dip"/>
 
         <ImageButton
             android:id="@+id/stop"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/pause" android:background="#000" android:padding="7dip"/>
+            android:src="@drawable/pause" android:background="@null" android:padding="7dip"/>
 
         <ImageButton
             android:id="@+id/skip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/skip" android:background="#000" android:padding="7dip"/>
+            android:src="@drawable/skip" android:background="@null" android:padding="7dip"/>
 
     </LinearLayout>
