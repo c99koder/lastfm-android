@@ -23,10 +23,13 @@ package fm.last.android.activity;
 import java.io.File;
 import java.util.List;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.ActivityGroup;
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -35,16 +38,16 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
-import fm.last.android.utils.AsyncTaskEx;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.provider.CalendarContract;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
 import android.widget.TabHost;
 import fm.last.android.AndroidLastFmServerFactory;
 import fm.last.android.LastFMApplication;
@@ -53,6 +56,7 @@ import fm.last.android.R;
 import fm.last.android.player.IRadioPlayer;
 import fm.last.android.player.RadioPlayerService;
 import fm.last.android.sync.AccountAuthenticatorService;
+import fm.last.android.utils.AsyncTaskEx;
 import fm.last.api.LastFmServer;
 import fm.last.api.Session;
 import fm.last.api.SessionInfo;
@@ -80,7 +84,6 @@ public class Profile extends ActivityGroup {
 		boolean isAuthenticatedUser = false;
 
 		super.onCreate(icicle);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.home);
 		Session session = LastFMApplication.getInstance().session;
 		if (session == null || session.getName() == null || (Integer.decode(Build.VERSION.SDK) >= 6 && !AccountAuthenticatorService.hasLastfmAccount(this))) {
@@ -250,23 +253,69 @@ public class Profile extends ActivityGroup {
 			//Google Analytics doesn't appear to be thread safe
 		}
 		
+		showSyncPrompts();
+
+	}
+
+	private void showSyncPrompts() {
 		if(Integer.decode(Build.VERSION.SDK) >= 6) {
 			SharedPreferences settings = getSharedPreferences(LastFm.PREFS, 0);
 			if(!settings.getBoolean("sync_nag", false) && !isHTCContactsInstalled(this)) {
 				SharedPreferences.Editor editor = settings.edit();
 				editor.putBoolean("sync_nag", true);
 				editor.commit();
-				Intent intent = new Intent(Profile.this, ContactsSyncPrompt.class);
-				startActivity(intent);
+				showContactSyncPrompt();
 			} else if(Integer.decode(Build.VERSION.SDK) >= 14 && !settings.getBoolean("sync_nag_cal", false)) {
 				SharedPreferences.Editor editor = settings.edit();
 				editor.putBoolean("sync_nag_cal", true);
 				editor.commit();
-				Intent intent = new Intent(Profile.this, CalendarSyncPrompt.class);
-				startActivity(intent);
+				showCalendarSyncPrompt();
 			}
 		}
+	}
 
+	private void showContactSyncPrompt() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.sync_prompt_title)
+			.setMessage(R.string.sync_prompt_body)
+			.setCancelable(false)
+			.setPositiveButton(R.string.common_yes, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					AccountManager am = AccountManager.get(Profile.this);
+					Account[] accounts = am.getAccountsByType(getString(R.string.ACCOUNT_TYPE));
+					ContentResolver.setIsSyncable(accounts[0], ContactsContract.AUTHORITY, 1);
+		            ContentResolver.setSyncAutomatically(accounts[0], ContactsContract.AUTHORITY, true);
+		            showSyncPrompts();
+				}
+			})
+			.setNegativeButton(R.string.common_no, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					showSyncPrompts();
+				}
+			});
+		builder.show();
+	}
+
+	private void showCalendarSyncPrompt() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.cal_sync_prompt_title)
+			.setMessage(R.string.cal_sync_prompt_body)
+			.setCancelable(false)
+			.setPositiveButton(R.string.common_yes, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					AccountManager am = AccountManager.get(Profile.this);
+					Account[] accounts = am.getAccountsByType(getString(R.string.ACCOUNT_TYPE));
+					ContentResolver.setIsSyncable(accounts[0], CalendarContract.AUTHORITY, 1);
+		            ContentResolver.setSyncAutomatically(accounts[0], CalendarContract.AUTHORITY, true);
+		            showSyncPrompts();
+				}
+			})
+			.setNegativeButton(R.string.common_no, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					showSyncPrompts();
+				}
+			});
+		builder.show();
 	}
 
 	@Override

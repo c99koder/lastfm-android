@@ -43,7 +43,6 @@ import android.os.Parcelable;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
@@ -75,7 +74,6 @@ public class LastFm extends Activity {
 	public void onCreate(Bundle icicle) {
 
 		super.onCreate(icicle);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		SharedPreferences settings = getSharedPreferences(PREFS, 0);
 		String user = settings.getString("lastfm_user", "");
 		String session_key = settings.getString("lastfm_session_key", "");
